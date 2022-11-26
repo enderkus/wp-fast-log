@@ -17,12 +17,21 @@ function fast_log_mail_notification($login) {
     if (!empty($_SERVER['HTTP_CLIENT_IP'])) $ip = $_SERVER['HTTP_CLIENT_IP'];
     elseif (!empty($_SERVER['HTTP_X_FORWARDED_FOR'])) $ip = $_SERVER['HTTP_X_FORWARDED_FOR'];
     else $ip = $_SERVER['REMOTE_ADDR'];
+    
+    $geo_api_url = 'https://reallyfreegeoip.org/json/'.$ip;
+    $json = file_get_contents($geo_api_url);
+    $json_data = json_decode($json, false);
 
     $data = array(
         'blog_name' => get_bloginfo('name'),
         'logged_user' => $user->user_login,
         'ip' => $ip,
         'date_time' => date("Y-m-d H:i:s"),
+        'country_code' => $json_data->country_code,
+        'country_name' => $json_data->country_name,
+        'region_name' => $json_data->region_name,
+        'latitude' => $json_data->latitude,
+        'longitude' => $json_data->longitude,
     );
 
     $settings = array (
@@ -41,8 +50,15 @@ function fast_log_mail_notification($login) {
         }
 
         $subject = 'New Login Detected : '. $data['blog_name'] . ' User : ' . $data['logged_user'];
-        $message = 'Login Date/Time : '. $data['date_time'] .'<br><hr>';
-        $message .= 'IP Address : '.$data['ip'];
+        $message = '<b>Logged in user : </b>' . $data['logged_user'].'<br';
+        $message .= '<b>Login Date/Time : </b>'. $data['date_time'] .'<br>';
+        $message .= '<b>IP Address : </b>'.$data['ip'].'<br>';
+        $message .= '<b>Country Code : </b>'.$json_data->country_code.'<br>';
+        $message .= '<b>Country Name : </b>'.$json_data->country_name.'<br>';
+        $message .= '<b>Region Name : </b>'.$json_data->region_name.'<br>';
+        $message .= '<b>Latitude : </b>'.$json_data->latitude.'<br>';
+        $message .= '<b>Longitude : </b>'.$json_data->longitude.'<br>';
+        
         wp_mail($to, $subject, $message, $headers );
     }
 
