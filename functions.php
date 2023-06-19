@@ -1,4 +1,5 @@
 <?php
+// Abspath defined
 defined( 'ABSPATH' ) || exit;
 
 function fast_log_register_settings() {
